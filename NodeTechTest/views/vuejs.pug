@@ -1,0 +1,147 @@
+extends layout
+
+block content
+  .uk-container
+    .uk-card.uk-card-body.uk-card-primary
+      h3.uk-card-title= title
+      p This page shows #{type} in action
+
+      //- .uk-section.uk-section-primary 
+      //-  h3 More
+
+      #app.uk.section.uk-section-secondary
+        .uk-padding.uk-background-muted
+         .uk-section.uk-padding.uk-section-primary
+           .uk-overflow-auto
+             table.uk-table.uk-table-divider.uk-table-striped.uk-table-hover.uk-table-justify.uk-table-responsive
+               caption Campaigns data:
+               thead
+                 tr
+                   th #
+                   th Experience Name
+                   th Experience ID
+               tfoot(v-if='allitems.length')
+                 tr
+                   td(colspan='3') Total items found: {{allitems.length}}
+               tfoot(v-if='items.length')
+                 tr
+                   td(colspan='3') Total items found: {{items.length}}
+               tbody(v-for='(item, index) in sortBy(allitems)')
+                 tr(v-if='!allitems.length')
+                   td(colspan='3') No items found
+                 tr(v-class='["item-"+((index) % 2==0?"odd":"even")]', v-for='(subitem, subindex) in item.experiences')
+                   td(v-bind:title="$options.filters.date(subitem.createdDate)") {{((index) * (item.experiences.length) + subindex ) + 1}}
+                   td {{subitem.experienceName?subitem.experienceName:'-'}} 
+                   td {{subitem.experienceId?subitem.experienceId:'-'}}
+               tbody(v-for='(item, index) in sortBy(items)')
+                 tr(v-if='!items.length')
+                   td(colspan='3') No items found
+                 tr(v-class='["item-"+((index) % 2==0?"odd":"even")]', v-for='(subitem, subindex) in item')
+                   td(v-bind:title="$options.filters.date(subitem.createdDate)") {{((index) * (items.length) + subindex ) + 1}}
+                   td {{subitem.experienceName?subitem.experienceName:'-'}} 
+                   td {{subitem.experienceId?subitem.experienceId:'-'}}
+
+           button.uk-button.uk-button-primary.uk-width-1-1(v-on:click='getData($event)') Get data
+           button.uk-button.uk-button-primary.uk-width-1-1(v-on:click='getMatchedData($event)') Get matched data
+           button.uk-button.uk-button-primary.uk-width-1-1(v-on:click='resetData($event)') Reset
+
+  //- Just for simplicity using vue.js CDN instead of npm vue module
+  script(src='https://cdn.jsdelivr.net/npm/vue/dist/vue.js')
+  //- Vue.js app - again, for simplicity added inline
+  script.
+    (function(){
+      var vueApp = new Vue({
+        //- App element
+        el: '#app',
+        data: {
+          items: [],
+          allitems: []
+        },
+        methods: {
+          sortBy: function(arr) {
+            // Set slice() to avoid to generate an infinite loop!
+            return arr.slice().sort(function(a, b) {
+              return a.createdDate - b.createdDate;
+            });
+          },
+          resetData: (event) => {
+            vueApp.allitems = [];
+            vueApp.items = [];
+          },
+          //- getData method for fetching webAPI
+          getData: (event) => {
+            vueApp.allitems = [];
+            vueApp.items = [];
+            fetch('/campaigns/all').then((response) => {
+              //- Promise to fect data
+              if (!response.ok) {
+                throw new Error('Response was not ok');
+              }
+              return response.json();
+            }).then((json) => {
+              //- Promise to fect data frompromise
+              vueApp.allitems = json;
+            }).catch((error) => {
+              //- Default event handler
+              console.error('There has been a problem with your fetch operation:', error);
+              vueApp.allitems = [];
+            });
+          },
+          getMatchedData: (event) => {
+            vueApp.allitems = [];
+            vueApp.items = [];
+            fetch('/campaigns/matched').then((response) => {
+              //- Promise to fect data
+              if (!response.ok) {
+                throw new Error('Response was not ok');
+              }
+              return response.json();
+            }).then((json) => {
+              //- Promise to fect data frompromise
+              vueApp.items = json;
+            }).catch((error) => {
+              //- Default event handler
+              console.error('There has been a problem with your fetch operation:', error);
+              vueApp.items = [];
+            });
+          }
+        },
+        filters: {
+          //- Capitalize filter
+          capitalize: (value) => {
+            if (!value) {
+              return '';
+            }
+            value = value.toString();
+            return value.charAt(0).toUpperCase() + value.slice(1);
+          },
+          //- Datetime filter (nstead of adding heavyweight moment.js
+          datetime: (value) => {
+            if (!value) {
+              return '';
+            }
+            const date = new Date(value);
+            return date.toLocaleDateString(['en-UK'], {month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+          },
+          //- Date filter (nstead of adding heavyweight moment.js
+          date: (value) => {
+            if (!value) {
+              return '';
+            }
+            const date = new Date(value);
+            return date.toLocaleDateString(['en-UK'], {month: 'short', day: '2-digit', year: 'numeric'});
+          },
+          //- Time filter (nstead of adding heavyweight moment.js
+          time: function(value){
+            if(!value){
+              return '';
+            }
+            const date = new Date(value);
+            return date.toLocaleDateString(['en-UK'], { hour: '2-digit', minute: '2-digit'});
+          },
+          pretty: function(value) {
+            return JSON.stringify(value);
+          }
+        }
+      });
+    }());

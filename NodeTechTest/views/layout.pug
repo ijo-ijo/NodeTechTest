@@ -1,0 +1,29 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    link(rel='shortcut icon', href='/favicons/favicon.ico')
+    link(rel='apple-touch-icon', sizes='180x180', href='/favicons/apple-touch-icon.png')
+    link(rel='icon', type='image/png', sizes='32x32', href='/favicons/favicon-32x32.png')
+    link(rel='icon', type='image/png', sizes='16x16', href='/favicons/favicon-16x16.png')
+    link(rel='manifest', href='/favicons/site.webmanifest')
+    title #{title} | Test site
+    link(href='https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap&subset=latin-ext', rel='stylesheet')
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/uikit@3.2.7/dist/css/uikit.min.css')
+    link(rel='stylesheet', href='/stylesheets/main.css')
+  body
+    nav.uk-navbar-container(uk-navbar)
+      .uk-navbar-left
+        ul.uk-navbar-nav
+          li.uk-active
+            a(href='/') Home
+              li
+                a(href='/vuejs') Vue.js
+              li
+                a(href='/angularjs') AngularJS
+              li
+                a(href='/react') React
+    block content
+    script(src='https://cdn.jsdelivr.net/npm/uikit@3.2.7/dist/js/uikit.min.js')
+    script(src='https://cdn.jsdelivr.net/npm/uikit@3.2.7/dist/js/uikit-icons.min.js')

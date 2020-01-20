@@ -1,0 +1,113 @@
+extends layout
+
+block content
+  .uk-container
+    .uk-card.uk-card-body.uk-card-primary
+      h3.uk-card-title= title
+      p This page shows #{type} in action
+
+      //- .uk-section.uk-section-primary 
+      //-  h3 More
+
+      .uk.section.uk-section-secondary(data-ng-app='angularjsApp', data-ng-controller='mainController')
+        .uk-padding.uk-background-muted
+         .uk-section.uk-padding.uk-section-primary
+           .uk-overflow-auto
+             table.uk-table.uk-table-divider.uk-table-striped.uk-table-hover.uk-table-justify.uk-table-responsive(data-ng-cloak)
+               caption Campaigns data:
+               thead
+                 tr
+                   th #
+                   th Experience Name
+                   th Experience ID
+               tfoot(data-ng-if='allitems.length')
+                 tr
+                   td(colspan='3') Total items found: {{allitems.length}}
+               tfoot(data-ng-if='items.length')
+                 tr
+                   td(colspan='3') Total items found: {{items.length}}
+               tbody(data-ng-if='allitems.length', data-ng-repeat='item in (allitems|orderBy:\'id\') track by item.campaignId')
+                 tr(data-ng-if='!allitems')
+                   td(colspan='3') No items found
+                 tr(data-ng-class='["item-"+(($index) % 2==0?"odd":"even")]', data-ng-repeat='subitem in (item.experiences|orderBy:\'experienceId\') track by subitem.experienceId')
+                   td(title="{{subitem.createdDate|date:'short'}}") {{(($parent.$index) * (item.experiences.length) + $index ) + 1}}
+                   td {{subitem.experienceName?subitem.experienceName:'-'}} 
+                   td {{subitem.experienceId?subitem.experienceId:'-'}}
+               tbody(data-ng-if='items.length', data-ng-repeat='item in items track by $index')
+                 tr(data-ng-if='!items')
+                   td(colspan='3') No items found
+                 tr(data-ng-class='["item-"+(($parent.$index) % 2==0?"odd":"even")]', data-ng-repeat='subitem in item track by $index')
+                   td(title="{{subitem.createdDate|date:'short'}}") {{(($parent.$index) * (items.length) + $index ) + 1}}
+                   td {{subitem.experienceName?subitem.experienceName:'-'}} 
+                   td {{subitem.experienceId?subitem.experienceId:'-'}}
+           button.uk-button.uk-button-primary.uk-width-1-1(data-ng-click='getData($event)') Get data
+           button.uk-button.uk-button-primary.uk-width-1-1(data-ng-click='getMatchedData($event)') Get matched data
+           button.uk-button.uk-button-primary.uk-width-1-1(data-ng-click='resetData($event)') Reset
+
+  //- Just for simplicity using AngularJS CDN instead of npm AngularJS module
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.8/angular.min.js', integrity='sha256-23hi0Ag650tclABdGCdMNSjxvikytyQ44vYGo9HyOrU=', crossorigin='anonymous')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.8/angular-resource.min.js', integrity='sha256-SlE5Vg142yVikdxa7FODJBO03XvGQGnTRcO2Tk23Mow=', crossorigin='anonymous')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.8/i18n/angular-locale_en-gb.js', integrity='sha256-Xv623qpMshz4qWHKpEovBhqFT6MyR3+h8R9TgNq8iaA=', crossorigin='anonymous')
+  //- AngularJS app - again, for simplicity added inline
+  script.
+    (function(){
+      'use strict';
+      angular.module('angularjsApp', ['CampaignsServices', 'MatchedCampaignsServices']);
+
+      angular.module('angularjsApp').constant('Config', {
+        'webapiURL': 'http://localhost:1337',
+        'APIGetMatchedCampaign': '/campaigns/matched',
+        'APIGetCampaign':'/campaigns/all'
+      });
+
+      angular.module('angularjsApp').controller('mainController', mainController);
+
+        mainController.$inject = ['$scope', 'Config', 'Campaigns', 'MatchedCampaigns'];
+
+        function mainController($scope, Config, Campaigns, MatchedCampaigns) {
+            $scope.items = [];
+            $scope.allitems = [];
+            $scope.resetData = () => {
+                $scope.allitems = [];
+                $scope.items = [];
+            },
+            $scope.getData = () => {
+                $scope.items = [];
+                $scope.allitems = [];
+                Campaigns().getData().$promise.then(function (data) {
+                    let laborElements = data.find(function (element) { return element.mandatory; });
+                    $scope.allitems = data;
+                }, function (data) {
+                    $scope.allitems = [];
+                });
+            };
+            $scope.getMatchedData = () => {
+                $scope.items = [];
+                $scope.allitems = [];
+                MatchedCampaigns().getData().$promise.then(function (data) {
+                    let laborElements = data.find(function (element) { return element.mandatory; });
+                    $scope.items = data;
+                }, function (data) {
+                    $scope.items = [];
+                });
+            };
+        }
+
+        angular.module('CampaignsServices', ['ngResource']).factory('Campaigns', ['$resource', 'Config', function ($resource, Config) {
+            return function () {
+                return $resource(Config.APIGetCampaign, null, {
+                    getData: { method: 'GET', params: {}, isArray: true }
+                });
+            }
+        }]);
+
+        
+        angular.module('MatchedCampaignsServices', ['ngResource']).factory('MatchedCampaigns', ['$resource', 'Config', function ($resource, Config) {
+            return function () {
+                return $resource(Config.APIGetMatchedCampaign, null, {
+                    getData: { method: 'GET', params: {}, isArray: true }
+                });
+            }
+        }]);
+
+    }());

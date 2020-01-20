@@ -1,0 +1,15 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1rem;
+    line-height: 1.25rem;
+}
+
+.uk-card-primary.uk-card-body .uk-button-primary, .uk-card-primary > :not([class*=uk-card-media]) .uk-button-primary {
+    color: #222 !important;
+}
+
+a {
+    color: #00B7FF;
+}

@@ -1,0 +1,30 @@
+{
+  "name": "interview-question",
+  "version": "1.0.0",
+  "description": "NodeTechTest for interview tech test",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "test": "node ./node_modules/mocha/bin/mocha --timeout 10000"
+  },
+  "author": {
+    "name": "N.G."
+  },
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "body-parser": "^1.15.0",
+    "chai": "^3.5.0",
+    "chai-http": "^2.0.1",
+    "cookie-parser": "^1.4.0",
+    "debug": "^2.2.0",
+    "express": "^4.14.0",
+    "mocha": "^2.5.3",
+    "morgan": "^1.7.0",
+    "pug": "^2.0.0-beta6",
+    "serve-favicon": "^2.3.0"
+  },
+  "engines": {
+    "node": "~6.10.x"
+  }
+}

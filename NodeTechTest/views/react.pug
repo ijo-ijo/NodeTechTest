@@ -1,0 +1,135 @@
+extends layout
+
+block content
+  .uk-container
+    .uk-card.uk-card-body.uk-card-primary
+      h3.uk-card-title= title
+      p This page shows #{type} in action
+
+      //- .uk-section.uk-section-primary 
+      //-  h3 More
+
+
+      .uk.section.uk-section-secondary
+        .uk-padding.uk-background-muted
+         .uk-section.uk-padding.uk-section-primary
+            #root
+
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/react/16.12.0/umd/react.production.min.js', integrity='sha256-Ef0vObdWpkMAnxp39TYSLVS/vVUokDE8CDFnx7tjY6U=', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.11.0/umd/react-dom.production.min.js', integrity='sha256-zuSDvIPhgPCvDFw3HdbA58QUOOGxPbs4llUvBOPxvjY=', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js', integrity='sha256-FiZMk1zgTeujzf/+vomWZGZ9r00+xnGvOgXoj0Jo1jA=', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.1/axios.min.js', integrity='sha256-Hhwv1ElzvrH6ZuiIDWEO6xBYW3lmFYrapwcjgXhpL6g=', crossorigin='anonymous')
+    script(type='text/babel').
+      class App extends React.Component {
+        state = {
+            allitems: [],
+            items: []
+        };
+
+        getData() {
+          axios
+            .get('/campaigns/all')
+            .then(response => response.data.map(item => ({
+              matched: `${item.matched}`,
+              campaignId: `${item.campaignId}`,
+              experiences: item.experiences
+            })))
+            .then(allitems => {
+              this.setState({
+                allitems,
+                items: []
+              });
+            })
+            .catch(error => this.setState({ allitems:[], items:[] }));
+        }
+
+        getMatchedData() {
+          axios
+            .get('/campaigns/matched')
+            .then(response => response.data.map(item => (item)))
+            .then(items => {
+              this.setState({
+                allitems: [],
+                items
+              });
+            })
+            .catch(error => this.setState({ allitems:[], items:[] }));
+        }
+
+        resetData() {
+            this.setState({ allitems:[], items:[] });
+        }
+
+        //componentDidMount() {
+          //this.getData();
+          //this.getMatchedData();
+        //}
+
+        render() {
+          const { allitems, items } = this.state;
+          return (
+            <React.Fragment>
+              <div class="uk-section uk-padding uk-section-primary">
+                  <div class="uk-overflow-auto">
+                     <table class="uk-table uk-table-divider uk-table-striped uk-table-hover uk-table-justify uk-table-responsive">
+                       <caption>Campaigns data:</caption>
+                       <thead>
+                         <tr>
+                           <th>#</th>
+                           <th>Experience Name</th>
+                           <th>Experience ID</th>
+                          </tr>
+                       </thead>
+                       <tfoot>
+                         <tr>
+                           <td colspan="3"> Total items found: {(allitems.length||items.length)}</td>
+                         </tr>
+                       </tfoot>
+                        {(
+                          allitems.map((item,index) => {
+                            const { matched, campaignId, experiences } = item;
+                            return (
+                              <tbody key={campaignId}>
+                                {(
+                                  experiences.map((experience,subindex) => {
+                                    const { experienceId, experienceName, personalisation, createdDate } = experience;
+                                    return (
+                                        <tr key={experienceId}>
+                                          <td title={createdDate}>{((index) * (experiences.length) + subindex ) + 1}</td>
+                                          <td>{experienceId}</td>
+                                          <td>{experienceName}</td>
+                                        </tr>
+                                    );
+                                  })
+                                )}
+                              </tbody>
+                            );
+                          })
+                        )}
+                        {(
+                          items.map((item,index) => {
+                            const key = Object.keys(item).shift();
+                            const itemObj = item[key];
+                            return (
+                              <tbody key={key}>
+                                <tr key={itemObj.experienceId}>
+                                    <td title={itemObj.createdDate}>{index + 1}</td>
+                                    <td>{itemObj.experienceId}</td>
+                                    <td>{itemObj.experienceName}</td>
+                                </tr>
+                              </tbody>
+                            );
+                          })
+                        )}
+                    </table>
+                  </div>
+                  <button class="uk-button uk-button-primary uk-width-1-1" onClick={this.getData.bind(this)}>Get data</button>
+                  <button class="uk-button uk-button-primary uk-width-1-1" onClick={this.getMatchedData.bind(this)}>Get matched data</button>
+                  <button class="uk-button uk-button-primary uk-width-1-1" onClick={this.resetData.bind(this)}>Reset</button>
+              </div>
+            </React.Fragment>
+          );
+        }
+      }
+
+      ReactDOM.render(<App />, document.getElementById("root"));
